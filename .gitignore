@@ -1,0 +1,5 @@
+/client2/node_modules
+/server/node_modules
+jean.pem
+sync.sh
+connect.sh
