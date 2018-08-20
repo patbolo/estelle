@@ -1,3 +1,5 @@
 export enum Action {
-    CAPTURE
+    CAPTURE,
+    JOINED,
+    RENAME,
 }

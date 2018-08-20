@@ -33,7 +33,7 @@ export class AppComponent implements OnInit {
       .subscribe(() => {
         console.log('connected');
       });
-      
+
     this.socketService.onEvent(Event.DISCONNECT)
       .subscribe(() => {
         console.log('disconnected');
@@ -57,7 +57,7 @@ export class AppComponent implements OnInit {
     if (action === Action.JOINED) {
       message = {
         action: action
-      }
+      };
     } else if (action === Action.RENAME) {
       message = {
         action: action,

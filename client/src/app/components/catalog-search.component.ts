@@ -5,7 +5,6 @@ import * as objects from '../../assets/catalog1.json';
   selector: 'catalog-search-component',
   template: `
     <input [(ngModel)]="searchText" placeholder="ie. Rosette, NGC245, M81, Jupiter, etc...">
-    
     <ul *ngIf="showSearchResults()">
       <li *ngFor="let o of pool | filterkeys : searchText" (click)="onObjectClicked(o)">
         {{getKey(o)}}
@@ -20,10 +19,10 @@ export class CatalogSearchComponent {
   pool = [];
 
   constructor() {
-    for (var key in objects) {
+    for (const key in objects) {
       if (objects.hasOwnProperty(key)) {
-        let names = key.split('|');
-        names.forEach((name)=>{
+        const names = key.split('|');
+        names.forEach((name) => {
           let i = {};
           i[name] = objects[key];
           this.pool.push(i);
@@ -32,11 +31,11 @@ export class CatalogSearchComponent {
     }
   }
 
-  getKey(o:object):string {
+  getKey(o: object): string {
     return Object.keys(o)[0];
   }
 
-  showSearchResults():boolean {
+  showSearchResults(): boolean {
     return this.searchText && this.searchText.length > 3;
   }
 

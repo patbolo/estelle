@@ -8,3 +8,7 @@ declare module "*.json" {
   const value: any;
   export default value;
 }
+
+declare var $: any;
+
+declare var THREE: any;
