@@ -1,5 +1,8 @@
 import { Component, AfterViewChecked } from '@angular/core';
 import { CoordinatesConverterService } from '../services/coordinates-converter.service';
+import { Mars } from '../models/mars';
+import { Mercury } from '../models/mercury';
+import { Sun } from '../models/sun';
 
 @Component({
   selector: 'planetarium-component',
@@ -272,6 +275,19 @@ export class PlanetariumComponent implements AfterViewChecked {
     });
   }
 
+  addMoon(sky) {
+    const moonGeoPos = this.coordinatesConverterService.getMoonCoordinates(/*2018, 8, 21, 9, 54*/);
+
+    const moonGeo = new THREE.SphereGeometry( 2, 32, 32 );
+    const moon = new THREE.Mesh( moonGeo, new THREE.MeshLambertMaterial({color: 0xdddddd}) );
+    moon.position.set(
+      70 * Math.cos(moonGeoPos.decrad) * Math.cos(-moonGeoPos.rarad),
+      70 * Math.sin(moonGeoPos.decrad),
+      70 * Math.cos(moonGeoPos.decrad) * Math.sin(-moonGeoPos.rarad),
+    );
+    sky.add(moon);
+  }
+
   ngAfterViewChecked() {
     if (this.initialViewCheck) {
       return;
@@ -290,7 +306,6 @@ export class PlanetariumComponent implements AfterViewChecked {
     const longitude = 176.8854;
     const LMST = this.coordinatesConverterService.getLocalSiderealTime(longitude);
     // LAT/LONG ROTATION
-
     const skyRotX = (lat < 0 ? -90 - lat : 90 - lat) * Math.PI / 180;
     const skyRotY = ( (lat < 0 ? LMST : -LMST) * 15) * Math.PI / 180 + Math.PI / 2;
     const skyRotZ = lat < 0 ? Math.PI : 0;
@@ -312,6 +327,25 @@ export class PlanetariumComponent implements AfterViewChecked {
 
     this.drawConstellations(sky);
     this.drawStars(sky);
+
+    this.addMoon(sky);
+
+    /*const mars = new Mars();
+    mars.getHelioEclipRectCoords(this.coordinatesConverterService.getDaysToJ2000());
+    mars.getRADec(-3543);
+    console.log(this.coordinatesConverterService.getDaysToJ2000(1990, 4, 19, 0, 0));*/
+
+    const sun = new Sun();
+    sun.coordinatesConverterService = this.coordinatesConverterService;
+    const sunEclipRectCoords = sun.getEclipRectCoords(this.coordinatesConverterService.getDaysToJ2000());
+    // console.log(mars.getGeocentricCoordinates(-3543, sunEclipRectCoords));
+
+    const mercury = new Mercury();
+    mercury.getHelioEclipRectCoords(-3543);
+    // console.log(mercury.getGeocentricRADec(-3543, sunEclipRectCoords));
+
+    const mars = new Mars();
+    console.log(mars.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords));
 
     const animate = function () {
       requestAnimationFrame( animate );
