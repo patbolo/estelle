@@ -90,7 +90,7 @@ export abstract class Planet {
         Math.sin(longAscNode) * Math.cos(trueAnomaly + argOfPerigee) +
         Math.cos(longAscNode) * Math.sin(trueAnomaly + argOfPerigee) * Math.cos(inclination)
       ),
-      z: dist * Math.sin(trueAnomaly + argOfPerigee) * Math.sin(inclination);
+      z: dist * Math.sin(trueAnomaly + argOfPerigee) * Math.sin(inclination)
     };
   }
 
