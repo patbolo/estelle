@@ -3,6 +3,7 @@ import { CoordinatesConverterService } from '../services/coordinates-converter.s
 import { Mars } from '../models/mars';
 import { Mercury } from '../models/mercury';
 import { Sun } from '../models/sun';
+import { ICoord3D, IRADec } from '../models/units';
 
 @Component({
   selector: 'planetarium-component',
@@ -12,12 +13,14 @@ import { Sun } from '../models/sun';
 })
 export class PlanetariumComponent implements AfterViewChecked {
 
+  skyRadius = 100;
+
   constructor(protected coordinatesConverterService: CoordinatesConverterService){}
 
   initialViewCheck = false;
 
   addBackground(sky) {
-    const bg_geo = new THREE.SphereGeometry( 90, 32, 32 );
+    const bg_geo = new THREE.SphereGeometry( this.skyRadius + 2, 32, 32 );
     const bg_mat = new THREE.MeshLambertMaterial({color: 0x000000});
     // const bg_mat = new THREE.MeshPhongMaterial(/*{color: 0x000000}*/);
     // bg_mat.map    = THREE.ImageUtils.loadTexture('assets/constellations_map_equ11011.png');
@@ -31,7 +34,7 @@ export class PlanetariumComponent implements AfterViewChecked {
   }
 
   addGround(scene) {
-    const bg_geo = new THREE.PlaneGeometry( 200, 200 );
+    const bg_geo = new THREE.PlaneGeometry( this.skyRadius * 2, this.skyRadius * 2 );
     const bg_mat = new THREE.MeshLambertMaterial({color: 0x000000});
     bg_mat.side = THREE.BackSide;
     const bg = new THREE.Mesh( bg_geo, bg_mat );
@@ -40,14 +43,14 @@ export class PlanetariumComponent implements AfterViewChecked {
     scene.add( bg );
   }
 
-  addSouthCelestialPole(sky) {
+  /*addSouthCelestialPole(sky) {
     const SCP_geo = new THREE.SphereGeometry( 1, 32, 32 );
     const SCP = new THREE.Mesh( SCP_geo, new THREE.MeshLambertMaterial({color: 0xff0000}) );
     SCP.position.set(0, -70, 0);
     sky.add(SCP);
-  }
+  }*/
 
-  addACrux(sky) {
+  /*addACrux(sky) {
     // Math from http://fmwriters.com/Visionback/Issue14/wbputtingstars.htm
     const ACruxCoord = {
       r: 12 * 15 + 26 * 0.25 + 35.89522 * 0.004166,
@@ -65,9 +68,9 @@ export class PlanetariumComponent implements AfterViewChecked {
       70 * Math.cos(ACruxPos.d * Math.PI / 180) * Math.sin(ACruxPos.r * Math.PI / 180),
     );
     sky.add(ACrux);
-  }
+  }*/
 
-  addBetelgeuse(sky) {
+  /*addBetelgeuse(sky) {
     // Math from http://fmwriters.com/Visionback/Issue14/wbputtingstars.htm
     const BetelgeuseCoord = {
       r: 5 * 15 + 55 * 0.25 + 10.30536 * 0.004166,
@@ -87,7 +90,7 @@ export class PlanetariumComponent implements AfterViewChecked {
       70 * Math.cos(BetelgeusePos.d * Math.PI / 180) * Math.sin(BetelgeusePos.r * Math.PI / 180),
     );
     sky.add(Betelgeuse);
-  }
+  }*/
 
   addAxisHelper(scene) {
     const axesHelper = new THREE.AxesHelper( 100 );
@@ -111,12 +114,12 @@ export class PlanetariumComponent implements AfterViewChecked {
   }
 
   drawConstellations(sky) {
-    $.getJSON('assets/constellations.json', function(data) {
+    $.getJSON('assets/constellations.json', (data) => {
       const constellations = data.Constellations;
-      constellations.forEach(function(constellation) {
+      constellations.forEach((constellation) => {
         const stars = constellation.stars;
         const lines = constellation.lines;
-        lines.forEach(function(line) {
+        lines.forEach((line) => {
           const indexStartStar = line[0];
           const indexEndStar = line[1];
 
@@ -132,24 +135,17 @@ export class PlanetariumComponent implements AfterViewChecked {
             }
           });
 
-          const startStarPos = {
-            r: -startStar.RAh / 24 * 360,
-            d: startStar.DEd
+          const startStarRADec: IRADec = {
+            RA: (startStar.RAh / 24 * 360) * this.coordinatesConverterService.DEG2RADEC,
+            dec: startStar.DEd * this.coordinatesConverterService.DEG2RADEC
           };
-          const endStarPos = {
-            r: -endStar.RAh / 24 * 360,
-            d: endStar.DEd
+          const endStarRADec: IRADec = {
+            RA: (endStar.RAh / 24 * 360) * this.coordinatesConverterService.DEG2RADEC,
+            dec: endStar.DEd * this.coordinatesConverterService.DEG2RADEC
           };
 
-          const dist = 71;
-
-          const startStarPosX = dist * Math.cos(startStarPos.d * Math.PI / 180) * Math.cos(startStarPos.r * Math.PI / 180);
-          const startStarPosY = dist * Math.sin(startStarPos.d * Math.PI / 180);
-          const startStarPosZ = dist * Math.cos(startStarPos.d * Math.PI / 180) * Math.sin(startStarPos.r * Math.PI / 180);
-
-          const endStarPosX = dist * Math.cos(endStarPos.d * Math.PI / 180) * Math.cos(endStarPos.r * Math.PI / 180);
-          const endStarPosY = dist * Math.sin(endStarPos.d * Math.PI / 180);
-          const endStarPosZ = dist * Math.cos(endStarPos.d * Math.PI / 180) * Math.sin(endStarPos.r * Math.PI / 180);
+          const startStarPos = this.coordinatesConverterService.RADecToCartesian(startStarRADec, this.skyRadius + 1);
+          const endStarPos = this.coordinatesConverterService.RADecToCartesian(endStarRADec, this.skyRadius + 1);
 
           const material = new THREE.LineBasicMaterial({
             color: 0x000033
@@ -157,8 +153,8 @@ export class PlanetariumComponent implements AfterViewChecked {
 
           const geometry = new THREE.Geometry();
           geometry.vertices.push(
-            new THREE.Vector3( startStarPosX, startStarPosY, startStarPosZ ),
-            new THREE.Vector3( endStarPosX, endStarPosY, endStarPosZ )
+            new THREE.Vector3( startStarPos.x, startStarPos.y, startStarPos.z ),
+            new THREE.Vector3( endStarPos.x, endStarPos.y, endStarPos.z )
           );
 
           const segment = new THREE.Line( geometry, material );
@@ -170,8 +166,8 @@ export class PlanetariumComponent implements AfterViewChecked {
   }
 
   drawStars(sky) {
-    $.getJSON('assets/hyg_custom_stars_catalogue.json', function(stars) {
-      stars.forEach(function(star) {
+    $.getJSON('assets/hyg_custom_stars_catalogue.json', (stars) => {
+      stars.forEach((star) => {
         if (star.mag > 6) {
           return;
         }
@@ -259,16 +255,9 @@ export class PlanetariumComponent implements AfterViewChecked {
         // mesh
         const mesh = new THREE.Mesh(geometry, material);
 
-        /*const starPos = {
-          r: star.RAh / 24 * 360,
-          d: star.DEd
-        };*/
+        const starPos = this.coordinatesConverterService.RADecToCartesian({dec: star.decrad, RA: star.rarad}, this.skyRadius);
 
-        mesh.position.set(
-          70 * Math.cos(star.decrad) * Math.cos(-star.rarad),
-          70 * Math.sin(star.decrad),
-          70 * Math.cos(star.decrad) * Math.sin(-star.rarad),
-        );
+        mesh.position.set(starPos.x, starPos.y, starPos.z);
 
         sky.add(mesh);
       });
@@ -276,16 +265,22 @@ export class PlanetariumComponent implements AfterViewChecked {
   }
 
   addMoon(sky) {
-    const moonGeoPos = this.coordinatesConverterService.getMoonCoordinates(/*2018, 8, 21, 9, 54*/);
-
+    const moonRADec = this.coordinatesConverterService.getMoonCoordinates(/*2018, 8, 21, 9, 54*/);
+    const moonPos = this.coordinatesConverterService.RADecToCartesian({dec: moonRADec.dec, RA: moonRADec.RA}, this.skyRadius);
     const moonGeo = new THREE.SphereGeometry( 2, 32, 32 );
-    const moon = new THREE.Mesh( moonGeo, new THREE.MeshLambertMaterial({color: 0xdddddd}) );
-    moon.position.set(
-      70 * Math.cos(moonGeoPos.decrad) * Math.cos(-moonGeoPos.rarad),
-      70 * Math.sin(moonGeoPos.decrad),
-      70 * Math.cos(moonGeoPos.decrad) * Math.sin(-moonGeoPos.rarad),
-    );
-    sky.add(moon);
+    const moonMesh = new THREE.Mesh( moonGeo, new THREE.MeshLambertMaterial({color: 0xdddddd}) );
+    moonMesh.position.set(moonPos.x, moonPos.y, moonPos.z);
+    sky.add(moonMesh);
+  }
+
+  addMars(sky, sunEclipRectCoords) {
+    const mars = new Mars();
+    const marsRADec = mars.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords);
+    const marsGeoPos = this.coordinatesConverterService.RADecToCartesian(marsRADec, this.skyRadius);
+    const marsGeo = new THREE.SphereGeometry( 1, 32, 32 );
+    const marsMesh = new THREE.Mesh( marsGeo, new THREE.MeshLambertMaterial({color: 0xdd3333}) );
+    marsMesh.position.set(marsGeoPos.x, marsGeoPos.y, marsGeoPos.z);
+    sky.add(marsMesh);
   }
 
   ngAfterViewChecked() {
@@ -306,8 +301,8 @@ export class PlanetariumComponent implements AfterViewChecked {
     const longitude = 176.8854;
     const LMST = this.coordinatesConverterService.getLocalSiderealTime(longitude);
     // LAT/LONG ROTATION
-    const skyRotX = (lat < 0 ? -90 - lat : 90 - lat) * Math.PI / 180;
-    const skyRotY = ( (lat < 0 ? LMST : -LMST) * 15) * Math.PI / 180 + Math.PI / 2;
+    const skyRotX = (lat < 0 ? -90 - lat : 90 - lat) * this.coordinatesConverterService.DEG2RADEC;
+    const skyRotY = ( (lat < 0 ? LMST : -LMST) * 15) * this.coordinatesConverterService.DEG2RADEC + Math.PI / 2;
     const skyRotZ = lat < 0 ? Math.PI : 0;
     sky.rotation.set(skyRotX, skyRotY, skyRotZ);
     scene.add(sky);
@@ -344,8 +339,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     mercury.getHelioEclipRectCoords(-3543);
     // console.log(mercury.getGeocentricRADec(-3543, sunEclipRectCoords));
 
-    const mars = new Mars();
-    console.log(mars.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords));
+    this.addMars(sky, sunEclipRectCoords);
 
     const animate = function () {
       requestAnimationFrame( animate );

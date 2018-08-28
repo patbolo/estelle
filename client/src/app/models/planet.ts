@@ -112,7 +112,7 @@ export abstract class Planet {
     console.log({RA: this.rev(RA * 180 / Math.PI), DEC: Decl * 180 / Math.PI});
     return <IRADec>{
       RA: Math.atan2( equat.y, equat.x ),
-      Dec: Math.asin( equat.z / dist )
+      dec: Math.asin( equat.z / dist )
     };
   }
 
@@ -130,12 +130,9 @@ export abstract class Planet {
       z: geoCentricCoords.y * Math.sin(oblecl) + geoCentricCoords.z * Math.cos(oblecl),
     };
     const dist = Math.sqrt( equat.x * equat.x + equat.y * equat.y + equat.z * equat.z);
-    console.log({dist})
-    const RA   = Math.atan2( equat.y, equat.x );
-    const Decl = Math.asin( equat.z / dist );
     return <IRADec>{
-      RA: this.rev(RA * 180 / Math.PI),
-      Dec: Decl * 180 / Math.PI
+      RA: Math.atan2( equat.y, equat.x ),
+      dec: Math.asin( equat.z / dist )
     };
   }
 }

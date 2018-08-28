@@ -6,5 +6,5 @@ export interface ICoord3D {
 
 export interface IRADec {
   RA: number;
-  Dec: number;
+  dec: number;
 }

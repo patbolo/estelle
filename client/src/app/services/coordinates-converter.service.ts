@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
+import { IRADec, ICoord3D } from '../models/units';
 
 @Injectable()
 export class CoordinatesConverterService {
+
+  public RADEC2DEG = 180 / Math.PI;
+  public DEG2RADEC = Math.PI / 180;
+
 
   /*numberish(char3) {
     if ( char3 == "0" || char3 == "1" || char3 == "2" || char3 == "3" || char3 == "4" || char3 == "5" || char3 == "6" ||
@@ -122,6 +127,19 @@ export class CoordinatesConverterService {
     console.log(xradec);
   }*/
 
+  /**
+   * Converts Right ascension / Declinaison coordinates into cartesian coordinates
+   * @param RADec IRADec Right ascension / Declinaison in radians
+   * @param radius number The radius of the sphere for projected cartesian coordinates
+   */
+  RADecToCartesian(RADec:IRADec, radius): ICoord3D {
+    return {
+      x: radius * Math.cos(RADec.dec) * Math.cos(-RADec.RA),
+      y: radius * Math.sin(RADec.dec),
+      z: radius * Math.cos(RADec.dec) * Math.sin(-RADec.RA)
+    };
+  }
+
   rev(x: number): number {
     return  x - Math.floor(x / 360.0) * 360.0;
   }
@@ -203,7 +221,7 @@ export class CoordinatesConverterService {
     return result;
   }
 
-  getMoonCoordinates(y?, m?, d?, h?, mn?) {
+  getMoonCoordinates(y?, m?, d?, h?, mn?): IRADec {
     // - Maths from http://www.stargazing.net/kepler/moon3.html
     // - See also http://www.internetsv.info/MoonCalc.html
     // - https://www.satellite-calculations.com/Satellite/suncalc.htm
@@ -214,34 +232,34 @@ export class CoordinatesConverterService {
       0.0013268 * Math.pow(T, 2) +
       Math.pow(T, 3) / 538841 -
       Math.pow(T, 4) / 194000) % 360; // series.B17
-    const radLPrime = LPrime * Math.PI / 180; // series.C17
+    const radLPrime = LPrime * this.DEG2RADEC; // series.C17
 
     const D = (297.8502042 +
       445267.1115168 * T -
       0.00163 * Math.pow(T, 2) +
       Math.pow(T, 3) / 545868 -
       Math.pow(T, 4) / 113065000) % 360; // series.B18
-    const radD = D * Math.PI / 180; // series.C18
+    const radD = D * this.DEG2RADEC; // series.C18
 
     const M = (357.5291092 +
       35999.0502909 * T -
       0.0001536 * Math.pow(T, 2) +
       Math.pow(T, 3) / 24490000) % 360; // series.B19
-    const radM = M * Math.PI / 180; // series.C19
+    const radM = M * this.DEG2RADEC; // series.C19
 
     const MPrime = (134.9634114 +
       477198.8676313 * T +
       0.008997 * Math.pow(T, 2) +
       Math.pow(T, 3) / 69699 -
       Math.pow(T, 4) / 14712000) % 360; // series.B20
-    const radMPrime = MPrime * Math.PI / 180; // series.C20
+    const radMPrime = MPrime * this.DEG2RADEC; // series.C20
 
     const F = (93.2720993 +
       483202.0175273 * T -
       0.0034029 * Math.pow(T, 2) +
       Math.pow(T, 3) / 3526000 -
       Math.pow(T, 4) / 863310000) % 360; // series.B21
-    const radF = F * Math.PI / 180; // series.C21
+    const radF = F * this.DEG2RADEC; // series.C21
 
     const E = 1 - 0.002516 * T - 0.0000074 * Math.pow(T, 2); // series.B26
     const ESquare = Math.pow(E, 2); // series.B27
@@ -405,12 +423,12 @@ export class CoordinatesConverterService {
     });
 
     const A1 = (119.75 + 131.849 * T) % 360; // series.B22
-    const radA1 = A1 * Math.PI / 180; // series.C22
+    const radA1 = A1 * this.DEG2RADEC; // series.C22
     const LPrimeMinusF = 1962 * Math.sin(radLPrime - radF);
     const A2 = (53.09 + 479264.29 * T) % 360; // series.B23
-    const radA2 = A2 * Math.PI / 180;
+    const radA2 = A2 * this.DEG2RADEC;
     const A3 = (313.45 + 481266.484 * T) % 360; // series.B24
-    const radA3 = A3 * Math.PI / 180;
+    const radA3 = A3 * this.DEG2RADEC;
 
     const latFinalTotal = totalBTerm +
       -2235 * Math.sin(radLPrime) +
@@ -427,11 +445,11 @@ export class CoordinatesConverterService {
 
     const lambda = LPrime + longFinalTotal / 1000000; // series.E6
     const omega = (125.04452 - 1934.136261 * T) % 360; // nutation.B13
-    const radOmega = omega * Math.PI / 180; // nutation.C13
+    const radOmega = omega * this.DEG2RADEC; // nutation.C13
     const meanLongSun = (280.4665 + 36000.7698 * T) % 360; // nutation.B14
-    const radMeanLongSun = meanLongSun * Math.PI / 180; // nutation.C14
+    const radMeanLongSun = meanLongSun * this.DEG2RADEC; // nutation.C14
     const meanLongMoon = (218.3165 + 481267.8813 * T) % 360; // nutation.B15
-    const radMeanLongMoon = meanLongMoon * Math.PI / 180; // nutation.C15
+    const radMeanLongMoon = meanLongMoon * this.DEG2RADEC; // nutation.C15
     const deltaPhi = -17.2 * Math.sin(radOmega) -
       1.32 * Math.sin(2 * radMeanLongSun) -
       0.23 * Math.sin(2 * radMeanLongMoon) +
@@ -450,18 +468,18 @@ export class CoordinatesConverterService {
 
 
     const trueLambda = lambda + degDeltaPhi; // nutation.B21
-    const radTrueLambda = trueLambda * Math.PI / 180; // equatorial.D8
+    const radTrueLambda = trueLambda * this.DEG2RADEC; // equatorial.D8
     const sinTrueLambda = Math.sin(radTrueLambda); // equatorial.E8
     const cosTrueLambda = Math.cos(radTrueLambda); // equatorial.F8
 
     const trueBeta = degBeta + degDeltaE; // equatorial.B9
-    const radTrueBeta = trueBeta * Math.PI / 180; // equatorial.D9
+    const radTrueBeta = trueBeta * this.DEG2RADEC; // equatorial.D9
     const sinTrueBeta = Math.sin(radTrueBeta); // equatorial.E9
     const cosTrueBeta = Math.cos(radTrueBeta); // equatorial.F9
     const tanTrueBeta = sinTrueBeta / cosTrueBeta; // equatorial.G9
 
     const trueEcliptic = eclipticOfDate + degDeltaE; // nutation.B23
-    const radTrueEcliptic = trueEcliptic * Math.PI / 180; // equatorial.D13
+    const radTrueEcliptic = trueEcliptic * this.DEG2RADEC; // equatorial.D13
     const sinTrueEcliptic = Math.sin(radTrueEcliptic); // equatorial.E13
     const cosTrueEcliptic = Math.cos(radTrueEcliptic); // equatorial.F13
     const geoAlphaEquatA = sinTrueLambda * cosTrueEcliptic - tanTrueBeta * sinTrueEcliptic;
@@ -479,10 +497,8 @@ export class CoordinatesConverterService {
 
     const geoDeltaEquatRad = Math.asin(sinTrueBeta * cosTrueEcliptic + cosTrueBeta * sinTrueEcliptic * sinTrueLambda); // equatorial.D19
     return {
-      rarad: geoAlphaEquatRad,
-      decrad: geoDeltaEquatRad,
-      ra: geoAlphaEquatRad * 180 / Math.PI / 15, // input.E9
-      dec: geoDeltaEquatRad * 180 / Math.PI // input.E10
+      RA: geoAlphaEquatRad,
+      dec: geoDeltaEquatRad
     };
   }
 }
