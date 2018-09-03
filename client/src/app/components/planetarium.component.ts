@@ -1,8 +1,12 @@
 import { Component, AfterViewChecked } from '@angular/core';
 import { CoordinatesConverterService } from '../services/coordinates-converter.service';
-import { Mars } from '../models/mars';
-import { Mercury } from '../models/mercury';
 import { Sun } from '../models/sun';
+import { Planet } from '../models/planet';
+import { MarsOrbitalElements } from '../models/mars';
+import { JupiterOrbitalElements } from '../models/jupiter';
+import { SaturnOrbitalElements } from '../models/saturn';
+import { UranusOrbitalElements } from '../models/uranus';
+
 import { ICoord3D, IRADec } from '../models/units';
 
 @Component({
@@ -274,13 +278,43 @@ export class PlanetariumComponent implements AfterViewChecked {
   }
 
   addMars(sky, sunEclipRectCoords) {
-    const mars = new Mars();
+    const mars = new Planet(MarsOrbitalElements);
+    mars.geo = new THREE.SphereGeometry( 1, 32, 32 );
+    mars.mesh = new THREE.Mesh( mars.geo, new THREE.MeshLambertMaterial({color: 0xdd3333}) );
     const marsRADec = mars.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords);
     const marsGeoPos = this.coordinatesConverterService.RADecToCartesian(marsRADec, this.skyRadius);
-    const marsGeo = new THREE.SphereGeometry( 1, 32, 32 );
-    const marsMesh = new THREE.Mesh( marsGeo, new THREE.MeshLambertMaterial({color: 0xdd3333}) );
-    marsMesh.position.set(marsGeoPos.x, marsGeoPos.y, marsGeoPos.z);
-    sky.add(marsMesh);
+    mars.mesh.position.set(marsGeoPos.x, marsGeoPos.y, marsGeoPos.z);
+    sky.add(mars.mesh);
+  }
+
+  addJupiter(sky, sunEclipRectCoords) {
+    const jupiter = new Planet(JupiterOrbitalElements);
+    jupiter.geo = new THREE.SphereGeometry( 1, 32, 32 );
+    jupiter.mesh = new THREE.Mesh( jupiter.geo, new THREE.MeshLambertMaterial({color: 0x33dddd}) );
+    const jupiterRADec = jupiter.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords);
+    const jupiterGeoPos = this.coordinatesConverterService.RADecToCartesian(jupiterRADec, this.skyRadius);
+    jupiter.mesh.position.set(jupiterGeoPos.x, jupiterGeoPos.y, jupiterGeoPos.z);
+    sky.add(jupiter.mesh);
+  }
+
+  addSaturn(sky, sunEclipRectCoords) {
+    const saturn = new Planet(SaturnOrbitalElements);
+    saturn.geo = new THREE.SphereGeometry( 1, 32, 32 );
+    saturn.mesh = new THREE.Mesh( saturn.geo, new THREE.MeshLambertMaterial({color: 0x33dddd}) );
+    const saturnRADec = saturn.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords);
+    const saturnGeoPos = this.coordinatesConverterService.RADecToCartesian(saturnRADec, this.skyRadius);
+    saturn.mesh.position.set(saturnGeoPos.x, saturnGeoPos.y, saturnGeoPos.z);
+    sky.add(saturn.mesh);
+  }
+
+  addUranus(sky, sunEclipRectCoords) {
+    const uranus = new Planet(UranusOrbitalElements);
+    uranus.geo = new THREE.SphereGeometry( 1, 32, 32 );
+    uranus.mesh = new THREE.Mesh( uranus.geo, new THREE.MeshLambertMaterial({color: 0x33dddd}) );
+    const uranusRADec = uranus.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords);
+    const uranusGeoPos = this.coordinatesConverterService.RADecToCartesian(uranusRADec, this.skyRadius);
+    uranus.mesh.position.set(uranusGeoPos.x, uranusGeoPos.y, uranusGeoPos.z);
+    sky.add(uranus.mesh);
   }
 
   ngAfterViewChecked() {
@@ -335,11 +369,14 @@ export class PlanetariumComponent implements AfterViewChecked {
     const sunEclipRectCoords = sun.getEclipRectCoords(this.coordinatesConverterService.getDaysToJ2000());
     // console.log(mars.getGeocentricCoordinates(-3543, sunEclipRectCoords));
 
-    const mercury = new Mercury();
-    mercury.getHelioEclipRectCoords(-3543);
+    // const mercury = new Mercury();
+    // mercury.getHelioEclipRectCoords(-3543);
     // console.log(mercury.getGeocentricRADec(-3543, sunEclipRectCoords));
 
     this.addMars(sky, sunEclipRectCoords);
+    this.addSaturn(sky, sunEclipRectCoords);
+    this.addJupiter(sky, sunEclipRectCoords);
+    this.addUranus(sky, sunEclipRectCoords);
 
     const animate = function () {
       requestAnimationFrame( animate );

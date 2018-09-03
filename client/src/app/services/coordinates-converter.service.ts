@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
 import { IRADec, ICoord3D } from '../models/units';
 
+export const UnitConversion = {
+  RADEC2DEG: 180 / Math.PI,
+  DEG2RADEC: Math.PI / 180,
+};
+
 @Injectable()
 export class CoordinatesConverterService {
 
-  public RADEC2DEG = 180 / Math.PI;
-  public DEG2RADEC = Math.PI / 180;
+  public RADEC2DEG = UnitConversion.RADEC2DEG;
+  public DEG2RADEC = UnitConversion.DEG2RADEC;
 
 
   /*numberish(char3) {

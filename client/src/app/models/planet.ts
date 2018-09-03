@@ -3,9 +3,15 @@
 // Also of interest https://ssd.jpl.nasa.gov/txt/aprx_pos_planets.pdf
 
 import { ICoord3D, IRADec } from './units';
+import { UnitConversion } from '../services/coordinates-converter.service';
 
-export abstract class Planet {
+export const PlanetPerturbationCoefs = {
+  Mj: 85.5238 * UnitConversion.DEG2RADEC, // Jupiter's perturbations
+  Ms: 198.4741 * UnitConversion.DEG2RADEC, // Saturn's
+  Mu: 101.0460 * UnitConversion.DEG2RADEC // Uranus's
+};
 
+export interface IPlanetaryOrbitalElements {
   N1: number; // LongAscNode
   N2: number; // LongAscNode
   I1: number; // Inclination
@@ -18,32 +24,48 @@ export abstract class Planet {
   M1: number; // Mean anomaly
   M2: number; // Mean anomaly
 
+  perturbations?: {
+    longitude?: Function;
+    latitude?: Function;
+  };
+}
+
+export class Planet {
+
+  POE: IPlanetaryOrbitalElements;
+  public geo: any;
+  public mesh: any;
+
+  constructor(POE: IPlanetaryOrbitalElements) {
+    this.POE = POE;
+  }
+
   rev(x: number): number {
     return  x - Math.floor(x / 360.0) * 360.0;
   }
 
   getLongAscNode(JD): number {
-    return this.rev(this.N1 + this.N2 * JD) * Math.PI / 180;
+    return this.rev(this.POE.N1 + this.POE.N2 * JD) * UnitConversion.DEG2RADEC;
   }
 
   getInclination(JD): number {
-    return this.rev(this.I1 + this.I2 * JD) * Math.PI / 180;
+    return this.rev(this.POE.I1 + this.POE.I2 * JD) * UnitConversion.DEG2RADEC;
   }
 
   getArgOfPerigee(JD): number {
-    return this.rev(this.W1 + this.W2 * JD) * Math.PI / 180;
+    return this.rev(this.POE.W1 + this.POE.W2 * JD) * UnitConversion.DEG2RADEC;
   }
 
   getMeanDistance(): number {
-    return this.A;
+    return this.POE.A;
   }
 
   getEccentricity(JD): number {
-    return this.E1 + this.E2 * JD;
+    return this.POE.E1 + this.POE.E2 * JD;
   }
 
   getMeanAnomaly(JD): number {
-    return this.rev(this.M1 + this.M2 * JD) * Math.PI / 180;
+    return this.rev(this.POE.M1 + this.POE.M2 * JD) * UnitConversion.DEG2RADEC;
   }
 
   getEccentricAnomaly(JD): number {
@@ -51,10 +73,10 @@ export abstract class Planet {
     const E = this.getEccentricity(JD);
 
     let E0 = Number.MAX_VALUE;
-    let E1 = M * 180 / Math.PI + (180 / Math.PI) * E * Math.sin(M) * (1 + E * Math.cos(M));
+    let E1 = M * UnitConversion.RADEC2DEG + (180 / Math.PI) * E * Math.sin(M) * (1 + E * Math.cos(M));
     while (Math.abs(E1 - E0) > 0.005) {
       E0 = E1;
-      E1 = E0 - (E0 - (180 / Math.PI) * E * Math.sin(E0 * Math.PI / 180) - M * 180 / Math.PI) / (1 - E * Math.cos(E0 * Math.PI / 180));
+      E1 = E0 - (E0 - (180 / Math.PI) * E * Math.sin(E0 * UnitConversion.DEG2RADEC) - M * UnitConversion.RADEC2DEG) / (1 - E * Math.cos(E0 * UnitConversion.DEG2RADEC));
     }
     return E1;
   }
@@ -62,16 +84,16 @@ export abstract class Planet {
   getDistance(JD): number {
     const EA = this.getEccentricAnomaly(JD);
     const E = this.getEccentricity(JD);
-    const X = this.A * (Math.cos(EA * Math.PI / 180) - E);
-    const Y = this.A * Math.sqrt(1 - E * E) * Math.sin(EA * Math.PI / 180);
+    const X = this.POE.A * (Math.cos(EA * UnitConversion.DEG2RADEC) - E);
+    const Y = this.POE.A * Math.sqrt(1 - E * E) * Math.sin(EA * UnitConversion.DEG2RADEC);
     return Math.sqrt( X * X + Y * Y);
   }
 
   getTrueAnomaly(JD): number {
     const EA = this.getEccentricAnomaly(JD);
     const E = this.getEccentricity(JD);
-    const X = this.A * (Math.cos(EA * Math.PI / 180) - E);
-    const Y = this.A * Math.sqrt(1 - E * E) * Math.sin(EA * Math.PI / 180);
+    const X = this.POE.A * (Math.cos(EA * UnitConversion.DEG2RADEC) - E);
+    const Y = this.POE.A * Math.sqrt(1 - E * E) * Math.sin(EA * UnitConversion.DEG2RADEC);
     return Math.atan2(Y, X);
   }
 
@@ -96,7 +118,7 @@ export abstract class Planet {
 
   getHelioEquatCoord(JD) {
     const eclip = this.getHelioEclipRectCoords(JD);
-    const oblecl = 0 * Math.PI / 180;
+    const oblecl = 0 * UnitConversion.DEG2RADEC;
     return <ICoord3D>{
       x: eclip.x,
       y: eclip.y * Math.cos(oblecl) - eclip.z * Math.sin(oblecl),
@@ -107,9 +129,19 @@ export abstract class Planet {
   getHelioRADec(JD): IRADec {
     const equat = this.getHelioEquatCoord(JD);
     const dist = this.getDistance(JD);
-    const RA   = Math.atan2( equat.y, equat.x );
-    const Decl = Math.asin( equat.z / dist );
-    console.log({RA: this.rev(RA * 180 / Math.PI), DEC: Decl * 180 / Math.PI});
+    let RA   = Math.atan2( equat.y, equat.x );
+    let Decl = Math.asin( equat.z / dist );
+
+    if (this.POE.perturbations) {
+      if (this.POE.perturbations.longitude) {
+        RA += this.POE.perturbations.longitude();
+      }
+      if (this.POE.perturbations.latitude) {
+        Decl += this.POE.perturbations.latitude();
+      }
+    }
+    console.log(this.rev(RA * UnitConversion.RADEC2DEG))
+    console.log(this.rev(Decl * UnitConversion.RADEC2DEG))
     return <IRADec>{
       RA: Math.atan2( equat.y, equat.x ),
       dec: Math.asin( equat.z / dist )
@@ -123,7 +155,7 @@ export abstract class Planet {
       y: planetHelioEclipRectCoords.y + sunEclipticCoordinates.y,
       z: planetHelioEclipRectCoords.z + sunEclipticCoordinates.z
     };
-    const oblecl = 23.4406 * Math.PI / 180;
+    const oblecl = 23.4406 * UnitConversion.DEG2RADEC;
     const equat: ICoord3D = {
       x: geoCentricCoords.x,
       y: geoCentricCoords.y * Math.cos(oblecl) - geoCentricCoords.z * Math.sin(oblecl),
