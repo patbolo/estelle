@@ -157,6 +157,22 @@ export class CoordinatesConverterService {
     return x;
   }
 
+  HMSToDegrees(h: number, m: number, s: number): number {
+    return this.rev( (h + m / 60 + s / 3600) * 15 );
+  }
+
+  HMSToRadians(h: number, m: number, s: number): number {
+    return this.HMSToDegrees(h, m, s) * UnitConversion.DEG2RADEC;
+  }
+
+  DMSToDegrees(d: number, m: number, s: number): number {
+    return this.rev(d + m / 60 + s / 3600);
+  }
+
+  DMSToRadians(d: number, m: number, s: number): number {
+    return this.DMSToDegrees(d, m, s) * UnitConversion.DEG2RADEC;
+  }
+
   hoursMinutesSeconds(time) {
     const h = Math.floor(time);
     const min = Math.floor(60.0 * this.frac(time));

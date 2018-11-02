@@ -148,11 +148,13 @@ export class PlanetariumComponent implements AfterViewChecked {
             dec: endStar.DEd * this.coordinatesConverterService.DEG2RADEC
           };
 
+          console.log({startStarRADec});
+
           const startStarPos = this.coordinatesConverterService.RADecToCartesian(startStarRADec, this.skyRadius + 1);
           const endStarPos = this.coordinatesConverterService.RADecToCartesian(endStarRADec, this.skyRadius + 1);
-
+          console.log({startStarPos})
           const material = new THREE.LineBasicMaterial({
-            color: 0x000033
+            color: 0x000066
           });
 
           const geometry = new THREE.Geometry();
@@ -268,6 +270,129 @@ export class PlanetariumComponent implements AfterViewChecked {
     });
   }
 
+  drawDSO(sky) {
+    $.getJSON('assets/NI2018.json', (objects) => {
+      //objects = [objects[6989]];
+      //console.log(objects)
+      const count = objects.length;
+
+      var positions = [];
+      var colors = [];
+      var orientationsStart = [];
+      var orientationsEnd = [];
+      var vector = new THREE.Vector4();
+      
+      const offsets = [];
+      const uvOffset = new Float32Array(count * 2);
+      const uvScales = new Float32Array(count * 2);
+
+      const cX = 389;
+      const cY = 109;
+      const cWidth = 25;
+      const cHeight = 28;
+      const left = cX / 512 - 3;
+      const top = (512 - (cY + cHeight)) / 512 - 3;
+
+      const vertices = new Float32Array( [
+        -0.5, -0.5, 0,
+         0.5, -0.5, 0,
+         0.5, 0.5, 0,
+        -0.5, 0.5, 0
+      ] );
+
+			const geometry = new THREE.InstancedBufferGeometry();
+			geometry.maxInstancedCount = count; 
+
+      geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+			
+      
+      const scale = new Float32Array( [
+        40 - 1 * 6,
+        40 - 1 * 6
+      ] );
+      geometry.addAttribute('scale', new THREE.InstancedBufferAttribute( scale, 2 ) );
+
+      geometry.setIndex( [ 0, 1, 2, 0, 2, 3 ] );
+
+
+      // See http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm
+
+      // iterators
+      let uvOffsetIterator = 0;
+      let uvScalesIterator = 0;
+      
+      objects.forEach((object) => {
+        const RA = this.coordinatesConverterService.HMSToRadians(object[8], object[9], object[10]);
+        let Dec = this.coordinatesConverterService.DMSToRadians(object[12], object[13], object[14]);
+        Dec = object[11] === '-' ? -Dec : Dec;
+        const objPos = this.coordinatesConverterService.RADecToCartesian({dec: Dec, RA: RA}, this.skyRadius);
+        console.log({RA, Dec})
+        console.log({objPos})
+        // offsets
+        offsets.push( objPos.x, objPos.y, objPos.z );
+        
+        // colors
+        colors.push( Math.random(), Math.random(), Math.random(), Math.random() );
+        
+        uvOffset[uvOffsetIterator++] = left;
+        uvOffset[uvOffsetIterator++] = top;
+
+        uvScales[uvScalesIterator++] = cWidth / 5.12;
+        uvScales[uvScalesIterator++] = cHeight / 5.12;
+
+        // orientation start
+
+				vector.set( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+				vector.normalize();
+
+				orientationsStart.push( 0, 0, 0, 1 );
+
+				// orientation end
+
+				vector.set( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+				vector.normalize();
+
+				orientationsEnd.push( 0, 0, 0, 1 );
+      });
+
+      geometry.addAttribute( 'color', new THREE.InstancedBufferAttribute( new Float32Array( colors ), 4 ) );
+
+      // add buffers
+      geometry.addAttribute(
+        'offset',
+        new THREE.InstancedBufferAttribute(new Float32Array( offsets ), 3, 1)
+      );
+      geometry.addAttribute(
+        'uvOffset',
+        new THREE.InstancedBufferAttribute(uvOffset, 2, 1)
+      );
+      geometry.addAttribute(
+        'uvScale',
+        new THREE.InstancedBufferAttribute(uvScales, 2, 1)
+      );
+      geometry.addAttribute( 'orientationStart', new THREE.InstancedBufferAttribute( new Float32Array( orientationsStart ), 4 ) );
+			geometry.addAttribute( 'orientationEnd', new THREE.InstancedBufferAttribute( new Float32Array( orientationsEnd ), 4 ) );
+
+      // material
+
+			var material = new THREE.RawShaderMaterial( {
+				uniforms: {
+          scale: { type: 'f', value: 0.5 },
+          time: { value: 1.0 },
+					sineTime: { value: 1.0 }
+        },
+        vertexShader: document.getElementById('vertexShader').innerText,
+        fragmentShader: document.getElementById('fragmentShader').innerText,
+        side: THREE.DoubleSide,
+        blending: THREE.NormalBlending,
+        transparent: true
+      } );
+      
+			var mesh = new THREE.Mesh( geometry, material );
+			sky.add( mesh );
+    });
+  }
+
   addMoon(sky) {
     const moonRADec = this.coordinatesConverterService.getMoonCoordinates(/*2018, 8, 21, 9, 54*/);
     const moonPos = this.coordinatesConverterService.RADecToCartesian({dec: moonRADec.dec, RA: moonRADec.RA}, this.skyRadius);
@@ -282,8 +407,10 @@ export class PlanetariumComponent implements AfterViewChecked {
     mars.geo = new THREE.SphereGeometry( 1, 32, 32 );
     mars.mesh = new THREE.Mesh( mars.geo, new THREE.MeshLambertMaterial({color: 0xdd3333}) );
     const marsRADec = mars.getGeocentricRADec(this.coordinatesConverterService.getDaysToJ2000(), sunEclipRectCoords);
+    console.log({marsRADec})
     const marsGeoPos = this.coordinatesConverterService.RADecToCartesian(marsRADec, this.skyRadius);
     mars.mesh.position.set(marsGeoPos.x, marsGeoPos.y, marsGeoPos.z);
+    console.log({marsGeoPos});
     sky.add(mars.mesh);
   }
 
@@ -377,6 +504,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     this.addSaturn(sky, sunEclipRectCoords);
     this.addJupiter(sky, sunEclipRectCoords);
     this.addUranus(sky, sunEclipRectCoords);
+    this.drawDSO(sky);
 
     const animate = function () {
       requestAnimationFrame( animate );
