@@ -47,56 +47,23 @@
       }
     </script>
 
-    <script id="vertexShader" type="x-shader/x-vertex">
+    <script type="x-shader/x-fragment" id="frag-donut">
       precision highp float;
-  
-      uniform float sineTime;
-  
-      uniform mat4 modelViewMatrix;
-      uniform mat4 projectionMatrix;
-  
-      attribute vec3 position;
-      attribute vec3 offset;
-      attribute vec4 color;
-      attribute vec4 orientationStart;
-      attribute vec4 orientationEnd;
-  
-      varying vec3 vPosition;
-      varying vec4 vColor;
-  
-      void main(){
-  
-        vPosition = offset + position;
-        //vec4 orientation = normalize( mix( orientationStart, orientationEnd, sineTime ) );
-        //vec3 vcV = cross( orientation.xyz, vPosition );
-        //vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition );
-  
-        vColor = color;
-  
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
-  
-      }
-  
-    </script>
-  
-    <script id="fragmentShader" type="x-shader/x-fragment">
-  
-      precision highp float;
-  
-      uniform float time;
-  
-      varying vec3 vPosition;
-      varying vec4 vColor;
-  
+    
+      varying vec2 vUv; 
+      uniform float border; // 0.2
+      uniform float circle_radius; // 0.5   
+      uniform vec4 circle_color; // vec4(1.0, 1.0, 1.0, 1.0)  
+    
       void main() {
-  
-        vec4 color = vec4( vColor );
-        color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
-  
-        gl_FragColor = color;
-  
+
+        float dist =  sqrt(dot(vUv, vUv));
+
+        float t = 1.0 + smoothstep(circle_radius, circle_radius+border, dist) 
+                - smoothstep(circle_radius-border, circle_radius, dist);
+        vec3 color = vec3(t);
+        gl_FragColor = mix(circle_color, vec4( color, 1.0-dist ), t);
       }
-  
     </script>
     
 </head>
