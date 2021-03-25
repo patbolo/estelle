@@ -9,10 +9,9 @@ import { GoToRoutes } from './routes/goto';
 //import { Message } from './model';
 
 export class AppServer {
-  public static readonly PORT:number = 8080;
+  public static readonly PORT:number = 3000;
   private app: express.Application;
   private server: Server;
-  private router: express.Router;
   private io: SocketIO.Server;
   private port: string | number;
 
@@ -26,7 +25,6 @@ export class AppServer {
 
   private createApp(): void {
     this.app = express();
-    this.router = express.Router();
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: false }));
   }
@@ -61,8 +59,7 @@ export class AppServer {
       socket.on('disconnect', () => {
         console.log('Client disconnected');
       });
-    });
-      
+    });      
   }
 
   public getApp(): express.Application {
