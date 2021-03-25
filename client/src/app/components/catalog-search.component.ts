@@ -1,5 +1,5 @@
 import { Component, Output, EventEmitter } from '@angular/core';
-import * as objects from '../../assets/catalog1.json';
+import objects from '../../assets/catalog1.json';
 
 @Component({
   selector: 'catalog-search-component',

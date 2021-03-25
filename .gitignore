@@ -7,3 +7,4 @@ pfs.key
 /keys
 openvpn.conf
 *.fits
+/client.ng5

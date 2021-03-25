@@ -24,7 +24,7 @@ import { Action } from '../models/action';
   `
 })
 export class ImagingComponent {
-  private isos = [
+  public isos = [
     50,
     100,
     200,
@@ -39,9 +39,9 @@ export class ImagingComponent {
     102400
   ];
 
-  private frames: number;
+  public frames: number;
 
-  private iso: number;
+  public iso: number;
 
   constructor(private socketService: SocketService) { }
   
