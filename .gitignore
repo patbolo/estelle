@@ -1,5 +1,10 @@
 /client/node_modules
+/client/dist
 /server/node_modules
 jean.pem
+pfs.key
 sync.sh
 connect.sh
+/keys
+openvpn.conf
+*.fits

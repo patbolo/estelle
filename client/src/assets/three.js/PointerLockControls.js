@@ -2,7 +2,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.PointerLockControls = function ( camera, scene ) {
+THREE.PointerLockControls = function ( camera, scene, planetarium, callbacks ) {
 
 	var scope = this;
 
@@ -39,9 +39,12 @@ THREE.PointerLockControls = function ( camera, scene ) {
 
 	var onScroll = function ( event ) {
 		event.preventDefault();
-		zoom = zoom + (event.wheelDelta > 0 ? zoomIncrement : -zoomIncrement);
+		zoom = zoom + (event.deltaY < 0 ? zoomIncrement : -zoomIncrement);
 		camera.zoom = zoom;
 		camera.updateProjectionMatrix();
+		if (callbacks.onZoomChanged) {
+			callbacks.onZoomChanged.bind(planetarium)(zoom);
+		}
 	};
 
 	var onMouseDown = function( event ) {
@@ -54,7 +57,7 @@ THREE.PointerLockControls = function ( camera, scene ) {
 		var raycaster = new THREE.Raycaster();
 		var mouse = new THREE.Vector2();
 		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-		mouse.y = - ( event.offsetY / event.toElement.height ) * 2 + 1;
+		mouse.y = - ( event.offsetY / event.target.height ) * 2 + 1;
 		console.log(mouse)
 		// update the picking ray with the camera and mouse position
 		raycaster.setFromCamera( mouse, camera );
