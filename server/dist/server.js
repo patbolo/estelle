@@ -1,8 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AppServer = void 0;
 var http_1 = require("http");
 var express = require("express");
 var socketIo = require("socket.io");
+var bodyParser = require("body-parser");
+var static_1 = require("./routes/static");
+var goto_1 = require("./routes/goto");
 //import { Message } from './model';
 var AppServer = /** @class */ (function () {
     function AppServer() {
@@ -14,6 +18,9 @@ var AppServer = /** @class */ (function () {
     }
     AppServer.prototype.createApp = function () {
         this.app = express();
+        this.router = express.Router();
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: false }));
     };
     AppServer.prototype.createServer = function () {
         this.server = http_1.createServer(this.app);
@@ -28,6 +35,9 @@ var AppServer = /** @class */ (function () {
         var _this = this;
         this.server.listen(this.port, function () {
             console.log('Running server on port %s', _this.port);
+            //this.app.use('/', express.static(path.join(__dirname, '../../client/dist/')));
+            static_1.StaticRoutes.set(_this.app);
+            goto_1.GoToRoutes.set(_this.app);
         });
         this.io.on('connect', function (socket) {
             console.log('Connected client on port %s.', _this.port);

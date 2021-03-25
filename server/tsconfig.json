@@ -1,10 +1,11 @@
 {
-  "files": [
-    "src/*.ts",
-    "src/model/*.ts"
+  "includes": [
+    "src/**/*.ts",
   ],
   "compilerOptions": {
     "noImplicitAny": true,
-    "target": "es5"
-  }
+    "target": "es5",
+    "outDir": "dist/",
+    "moduleResolution": "node"
+  }  
 }

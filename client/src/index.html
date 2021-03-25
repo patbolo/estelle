@@ -36,67 +36,50 @@
     <script type="x-shader/x-fragment" id="frag">
       precision highp float;
     
-      varying vec2 vUv;      
+      varying vec2 vUv;
+      uniform float size;   
     
       void main() {
         float pct = 0.0;
-        float dist = distance(vUv,vec2(0.5));
+        float dist = distance(vUv,vec2(0.5)) * size;
         pct = 1.0-dist;
         vec3 color = vec3(pct);
         gl_FragColor = vec4( color, 1.0-dist );
       }
     </script>
 
-    <script id="vertexShader" type="x-shader/x-vertex">
-      precision highp float;
-  
-      uniform float sineTime;
-  
-      uniform mat4 modelViewMatrix;
-      uniform mat4 projectionMatrix;
-  
-      attribute vec3 position;
-      attribute vec3 offset;
-      attribute vec4 color;
-      attribute vec4 orientationStart;
-      attribute vec4 orientationEnd;
-  
-      varying vec3 vPosition;
-      varying vec4 vColor;
-  
-      void main(){
-  
-        vPosition = offset + position;
-        //vec4 orientation = normalize( mix( orientationStart, orientationEnd, sineTime ) );
-        //vec3 vcV = cross( orientation.xyz, vPosition );
-        //vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition );
-  
-        vColor = color;
-  
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
-  
-      }
-  
-    </script>
-  
-    <script id="fragmentShader" type="x-shader/x-fragment">
-  
-      precision highp float;
-  
-      uniform float time;
-  
-      varying vec3 vPosition;
-      varying vec4 vColor;
-  
+    <script type="x-shader/x-fragment" id="frag-donut">
+      precision mediump float;
+      varying vec2 vUv;
+
+      const float BORDER = 1.0;
+
       void main() {
-  
-        vec4 color = vec4( vColor );
-        color.r += sin( vPosition.x * 10.0 + time ) * 0.5;
-  
-        gl_FragColor = color;
-  
+        float x = vUv.x;
+        float y = vUv.y;
+        float radius = x * x + y * y;
+        if( radius > 0.5 ) discard;
+
+        radius = sqrt( radius );
+
+        float radiusH = 0.5 - BORDER / 16.0;
+        float radiusV = 0.5 - BORDER / 16.0;
+        float radiusAverage = (radiusH + radiusV) * 0.5;
+
+        float minRadius = 0.0;
+        x = abs( x );
+        y = abs( y );
+        if( x > y ) {
+          minRadius = mix( radiusH, radiusAverage, y / x );
+        }
+        else {
+          minRadius = mix( radiusV, radiusAverage, x / y );
+        }
+
+        if( radius < minRadius ) discard;
+
+        gl_FragColor = vec4(1, .5, 0, 1);
       }
-  
     </script>
     
 </head>

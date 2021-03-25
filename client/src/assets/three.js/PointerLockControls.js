@@ -2,9 +2,14 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.PointerLockControls = function ( camera ) {
+THREE.PointerLockControls = function ( camera, scene, planetarium, callbacks ) {
 
 	var scope = this;
+
+	var zoom = 1;
+	var zoomIncrement = 0.1;
+
+	
 
 	camera.rotation.set( 0, 0, 0 );
 
@@ -32,12 +37,39 @@ THREE.PointerLockControls = function ( camera ) {
 		pitchObject.rotation.x = Math.max( 0, pitchObject.rotation.x );
 	};
 
+	var onScroll = function ( event ) {
+		event.preventDefault();
+		zoom = zoom + (event.deltaY < 0 ? zoomIncrement : -zoomIncrement);
+		camera.zoom = zoom;
+		camera.updateProjectionMatrix();
+		if (callbacks.onZoomChanged) {
+			callbacks.onZoomChanged.bind(planetarium)(zoom);
+		}
+	};
+
 	var onMouseDown = function( event ) {
 		scope.enabled = true;
 	};
 
 	var onMouseUp  = function( event ) {
+		console.log(event)
 		scope.enabled = false;
+		var raycaster = new THREE.Raycaster();
+		var mouse = new THREE.Vector2();
+		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( event.offsetY / event.target.height ) * 2 + 1;
+		console.log(mouse)
+		// update the picking ray with the camera and mouse position
+		raycaster.setFromCamera( mouse, camera );
+
+		// calculate objects intersecting the picking ray
+		var intersects = raycaster.intersectObjects( scene.children, true );
+		console.log(intersects);
+
+		/*var geo = new THREE.SphereGeometry( 1, 32, 32 );
+    var mesh = new THREE.Mesh( geo, new THREE.MeshLambertMaterial({color: 0xdd3333}) );
+    mesh.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+    scene.add(mesh);*/
 	};
 
 	this.dispose = function () {
@@ -50,6 +82,7 @@ THREE.PointerLockControls = function ( camera ) {
 	document.addEventListener( 'mousemove', onMouseMove, false );
 	document.addEventListener( 'mousedown', onMouseDown, false );
 	document.addEventListener( 'mouseup', onMouseUp, false );
+	document.addEventListener( 'wheel', onScroll, false );
 
 	this.enabled = false;
 
