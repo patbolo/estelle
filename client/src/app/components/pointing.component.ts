@@ -5,13 +5,14 @@ import { Component } from '@angular/core';
   template: `
     <h2>Pointing</h2>
     <catalog-search-component (onObjectSelected)="onObjectSelected($event)"></catalog-search-component>
+    <radec-form-component></radec-form-component>
     <planetarium-component></planetarium-component>
   `
 })
 export class PointingComponent {
 
-  onObjectSelected($event) {
+  onObjectSelected($event): void {
     console.log($event);
   }
-  
+
 }

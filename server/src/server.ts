@@ -44,7 +44,6 @@ export class AppServer {
   private listen(): void {
     this.server.listen(this.port, () => {
       console.log('Running server on port %s', this.port);
-      //this.app.use('/', express.static(path.join(__dirname, '../../client/dist/')));
       StaticRoutes.set(this.app);
       GoToRoutes.set(this.app);
     });
