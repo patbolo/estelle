@@ -8,3 +8,4 @@ pfs.key
 openvpn.conf
 *.fits
 /client.ng5
+/controller/__pycache__
