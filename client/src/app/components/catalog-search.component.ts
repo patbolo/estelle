@@ -4,7 +4,9 @@ import objects from '../../assets/catalog1.json';
 @Component({
   selector: 'catalog-search-component',
   template: `
-    <input [(ngModel)]="searchText" placeholder="ie. Rosette, NGC245, M81, Jupiter, etc...">
+    <mat-form-field>
+      <input matInput [(ngModel)]="searchText" placeholder="ie. Rosette, NGC245, M81, Jupiter, etc...">
+    </mat-form-field>
     <ul *ngIf="showSearchResults()">
       <li *ngFor="let o of pool | filterkeys : searchText" (click)="onObjectClicked(o)">
         {{getKey(o)}}
@@ -23,7 +25,7 @@ export class CatalogSearchComponent {
       if (objects.hasOwnProperty(key)) {
         const names = key.split('|');
         names.forEach((name) => {
-          let i = {};
+          const i = {};
           i[name] = objects[key];
           this.pool.push(i);
         });
@@ -39,7 +41,7 @@ export class CatalogSearchComponent {
     return this.searchText && this.searchText.length > 3;
   }
 
-  onObjectClicked(object: object) {
+  onObjectClicked(object: object): void {
     this.onObjectSelected.emit(object[this.getKey(object)]);
   }
 

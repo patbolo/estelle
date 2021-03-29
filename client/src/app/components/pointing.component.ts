@@ -4,10 +4,16 @@ import { Component } from '@angular/core';
   selector: 'pointing-component',
   template: `
     <h2>Pointing</h2>
-    <catalog-search-component (onObjectSelected)="onObjectSelected($event)"></catalog-search-component>
-    <radec-form-component></radec-form-component>
+
     <planetarium-component></planetarium-component>
-  `
+    <mat-sidenav-container class="right-sidenav-container">
+      <mat-sidenav #sidenav mode="side" opened class="right-sidenav">
+        <catalog-search-component (onObjectSelected)="onObjectSelected($event)"></catalog-search-component>
+        <radec-form-component></radec-form-component>
+      </mat-sidenav>
+    </mat-sidenav-container>
+  `,
+  styleUrls: ['./pointing.component.css']
 })
 export class PointingComponent {
 

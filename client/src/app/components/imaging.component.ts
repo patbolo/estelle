@@ -44,8 +44,8 @@ export class ImagingComponent {
   public iso: number;
 
   constructor(private socketService: SocketService) { }
-  
-  doCapture() {
+
+  doCapture(): void {
     let message: Message;
 
     message = {
@@ -58,5 +58,4 @@ export class ImagingComponent {
 
     this.socketService.send(message);
   }
-  
 }

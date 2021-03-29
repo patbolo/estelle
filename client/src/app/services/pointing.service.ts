@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+
+const USE_MOCK_BACKEND = true;
 
 @Injectable()
 export class PointingService {
@@ -10,11 +12,10 @@ export class PointingService {
   ) {
   }
 
-  /**
-   * Fetch offerings details having name, info and _id
-   * @return IClassConsoleOfferingsResponse
-   */
   getRaDec(): Observable<any> {
+    if (USE_MOCK_BACKEND) {
+      return of([90, 270]);
+    }
     return this.http.get('/mount/radec');
   }
 

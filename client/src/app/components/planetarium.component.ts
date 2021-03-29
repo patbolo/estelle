@@ -7,7 +7,7 @@ import { JupiterOrbitalElements } from '../models/jupiter';
 import { SaturnOrbitalElements } from '../models/saturn';
 import { UranusOrbitalElements } from '../models/uranus';
 
-import { ICoord3D, IRADec } from '../models/units';
+import { IRADec } from '../models/units';
 
 @Component({
   selector: 'planetarium-component',
@@ -32,103 +32,66 @@ export class PlanetariumComponent implements AfterViewChecked {
     transparent: true
   });
 
+  DSOMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      scale: { type: 'f', value: 0.05 }
+    },
+    vertexShader: document.getElementById('vert').innerText,
+    fragmentShader: document.getElementById('frag-donut').innerText,
+    side: THREE.DoubleSide,
+    blending: THREE.NormalBlending,
+    transparent: true
+  });
+
   constructor(protected coordinatesConverterService: CoordinatesConverterService){
     this.starMaterial.extensions.derivatives = true;
+    this.DSOMaterial.extensions.derivatives = true;
   }
 
   initialViewCheck = false;
 
-  addBackground(sky) {
-    const bg_geo = new THREE.SphereGeometry( this.skyRadius + 2, 32, 32 );
-    bg_geo.name = 'background';
-    const bg_mat = new THREE.MeshLambertMaterial({color: 0x000000});
-    // const bg_mat = new THREE.MeshPhongMaterial(/*{color: 0x000000}*/);
-    // bg_mat.map    = THREE.ImageUtils.loadTexture('assets/constellations_map_equ11011.png');
-    // bg_mat.map    = THREE.ImageUtils.loadTexture('assets/constellation_figures_print.jpg');
-    // bg_mat.map    = THREE.ImageUtils.loadTexture('assets/TychoSkymapII.t5_16384x08192.jpg');
-    bg_mat.map    = THREE.ImageUtils.loadTexture('assets/sky_map.png');
-    bg_mat.map.wrapS = THREE.RepeatWrapping;
-    bg_mat.side = THREE.BackSide;
-    const bg = new THREE.Mesh( bg_geo, bg_mat );
+  addBackground(sky): void {
+    const bgGeo = new THREE.SphereGeometry( this.skyRadius + 2, 32, 32 );
+    bgGeo.name = 'background';
+    const bgMat = new THREE.MeshLambertMaterial({color: 0x000000});
+    // const bgMat = new THREE.MeshPhongMaterial(/*{color: 0x000000}*/);
+    // bgMat.map    = THREE.ImageUtils.loadTexture('assets/constellations_map_equ11011.png');
+    // bgMat.map    = THREE.ImageUtils.loadTexture('assets/constellation_figures_print.jpg');
+    // bgMat.map    = THREE.ImageUtils.loadTexture('assets/TychoSkymapII.t5_16384x08192.jpg');
+    // bgMat.map    = THREE.ImageUtils.loadTexture('assets/sky_map.png');
+    // bgMat.map.wrapS = THREE.RepeatWrapping;
+    bgMat.side = THREE.BackSide;
+    const bg = new THREE.Mesh( bgGeo, bgMat );
     sky.add( bg );
   }
 
-  addGround(scene) {
-    const bg_geo = new THREE.PlaneGeometry( this.skyRadius * 2, this.skyRadius * 2 );
-    bg_geo.name = 'ground';
-    const bg_mat = new THREE.MeshLambertMaterial({color: 0x000000});
-    bg_mat.side = THREE.BackSide;
-    const bg = new THREE.Mesh( bg_geo, bg_mat );
+  addGround(scene): void {
+    const bgGeo = new THREE.PlaneGeometry( this.skyRadius * 2, this.skyRadius * 2 );
+    bgGeo.name = 'ground';
+    const bgMat = new THREE.MeshLambertMaterial({color: 0x000000});
+    bgMat.side = THREE.BackSide;
+    const bg = new THREE.Mesh( bgGeo, bgMat );
     bg.rotation.set(Math.PI / 2, 0, 0);
     bg.position.set(0, -0.1, 0);
     scene.add( bg );
   }
 
-  /*addSouthCelestialPole(sky) {
-    const SCP_geo = new THREE.SphereGeometry( 1, 32, 32 );
-    const SCP = new THREE.Mesh( SCP_geo, new THREE.MeshLambertMaterial({color: 0xff0000}) );
-    SCP.position.set(0, -70, 0);
-    sky.add(SCP);
-  }*/
-
-  /*addACrux(sky) {
-    // Math from http://fmwriters.com/Visionback/Issue14/wbputtingstars.htm
-    const ACruxCoord = {
-      r: 12 * 15 + 26 * 0.25 + 35.89522 * 0.004166,
-      d: {d: -63, m: 5, s: 56.7343}
-    };
-    const ACruxPos = {
-      r: ACruxCoord.r,
-      d: ( Math.abs(ACruxCoord.d.d) + (ACruxCoord.d.m / 60) + (ACruxCoord.d.s / 3600)) * (ACruxCoord.d.d > 0 ? 1 : -1)
-    };
-    const ACruxGeo = new THREE.SphereGeometry( 1, 32, 32 );
-    const ACrux = new THREE.Mesh( ACruxGeo, new THREE.MeshLambertMaterial({color: 0xff0000}) );
-    ACrux.position.set(
-      70 * Math.cos(ACruxPos.d * Math.PI / 180) * Math.cos(ACruxPos.r * Math.PI / 180),
-      70 * Math.sin(ACruxPos.d * Math.PI / 180),
-      70 * Math.cos(ACruxPos.d * Math.PI / 180) * Math.sin(ACruxPos.r * Math.PI / 180),
-    );
-    sky.add(ACrux);
-  }*/
-
-  /*addBetelgeuse(sky) {
-    // Math from http://fmwriters.com/Visionback/Issue14/wbputtingstars.htm
-    const BetelgeuseCoord = {
-      r: 5 * 15 + 55 * 0.25 + 10.30536 * 0.004166,
-      d: {d: 7, m: 24, s: 25.4304}
-    };
-    const BetelgeusePos = {
-      r: BetelgeuseCoord.r,
-      d: ( Math.abs(BetelgeuseCoord.d.d) + (BetelgeuseCoord.d.m / 60) + (BetelgeuseCoord.d.s / 3600)) * (BetelgeuseCoord.d.d > 0 ? 1 : -1)
-    };
-    const BetelgeuseGeo = new THREE.SphereGeometry( 1, 32, 32 );
-    const Betelgeuse = new THREE.Mesh( BetelgeuseGeo, new THREE.MeshLambertMaterial({color: 0xff0000}) );
-    console.log(BetelgeusePos.r * Math.PI / 180);
-    console.log(BetelgeusePos.d * Math.PI / 180);
-    Betelgeuse.position.set(
-      70 * Math.cos(BetelgeusePos.d * Math.PI / 180) * Math.cos(BetelgeusePos.r * Math.PI / 180),
-      70 * Math.sin(BetelgeusePos.d * Math.PI / 180),
-      70 * Math.cos(BetelgeusePos.d * Math.PI / 180) * Math.sin(BetelgeusePos.r * Math.PI / 180),
-    );
-    sky.add(Betelgeuse);
-  }*/
-
-  addAxisHelper(scene) {
+  addAxisHelper(scene): void {
     const axesHelper = new THREE.AxesHelper( 100 );
     scene.add( axesHelper );
   }
 
-  addLight(scene) {
+  addLight(scene): void {
     const light = new THREE.AmbientLight( 0x888888 );
     scene.add(light);
   }
 
-  onZoomChanged(zoom) {
+  onZoomChanged(zoom): void {
     this.starMaterial.uniforms.size.value = Math.max(1, Math.min(2.5, zoom - 1));
     // console.log({ zoom }, this.starMaterial.uniforms.size.value)
   }
 
-  addCamera(scene) {
+  addCamera(scene): void {
     const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     const controls = new THREE.PointerLockControls(
       camera,
@@ -144,7 +107,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     return camera;
   }
 
-  drawConstellations(sky) {
+  drawConstellations(sky): void {
     $.getJSON('assets/constellations.json', (data) => {
       const constellations = data.Constellations;
       constellations.forEach((constellation) => {
@@ -198,7 +161,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     });
   }
 
-  drawStars(sky) {
+  drawStars(sky): void {
     $.getJSON('assets/hyg_custom_stars_catalogue.json', (stars) => {
       stars.forEach((star) => {
         if (star.mag > 6/* || star.con !== 'Sgr'*/) {
@@ -283,7 +246,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     });
   }
 
-  drawDSO(sky) {
+  drawDSO(sky): void {
     // material
     /*
     const material2 = new THREE.ShaderMaterial({
@@ -365,7 +328,7 @@ export class PlanetariumComponent implements AfterViewChecked {
       'uvScale',
       new THREE.InstancedBufferAttribute(uvScales, 2, true)
     );
-    const material = new THREE.MeshPhongMaterial( { flatShading: true } );
+    const material = new THREE.MeshLambertMaterial( { color: 0xdddddd, opacity: 0.1, transparent: true } );
     const transform = new THREE.Object3D();
 
     $.getJSON('assets/NI2018.json', (objects) => {
@@ -378,119 +341,18 @@ export class PlanetariumComponent implements AfterViewChecked {
         const RA = this.coordinatesConverterService.HMSToRadians(object[8], object[9], object[10]);
         let Dec = this.coordinatesConverterService.DMSToRadians(object[12], object[13], object[14]);
         Dec = object[11] === '-' ? -Dec : Dec;
-        const objPos = this.coordinatesConverterService.RADecToCartesian({dec: Dec, RA: RA}, this.skyRadius);
+        const objPos = this.coordinatesConverterService.RADecToCartesian({dec: Dec, RA}, this.skyRadius);
         transform.position.set(objPos.x, objPos.y, objPos.z);
         transform.lookAt(0, 0, 0);
         transform.updateMatrix();
-        transform.name = 'DSO'+object[0]+object[1];
+        transform.name = 'DSO' + object[0] + object[1];
         mesh.setMatrixAt( i++, transform.matrix );
       });
       sky.add(mesh);
     });
   }
 
-  // drawDSO(sky) {
-  //   $.getJSON('assets/NI2018.json', (objects) => {
-  //     //objects = [objects[6989]];
-  //     objects.forEach((object) => {
-
-  //       // instances geometry
-  //       const geometry = new THREE.InstancedBufferGeometry();
-
-  //       const vertices = new Float32Array( [
-  //         - 0.05, - 0.05, 0,
-  //           0.05, - 0.05, 0,
-  //           0.05, 0.05, 0,
-  //         - 0.05, 0.05, 0
-  //       ] );
-
-  //       const uvs = new Float32Array( [
-  //         0, 0,
-  //         1, 0,
-  //         1, 1,
-  //         0, 1
-  //       ] );
-
-  //       const scale = new Float32Array( [
-  //         40 - -1 * 6,
-  //         40 - -1 * 6
-  //       ] );
-
-  //       geometry.setAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-  //       geometry.setAttribute('uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
-  //       geometry.setAttribute('scale', new THREE.InstancedBufferAttribute( scale, 2 ) );
-  //       geometry.setIndex( [ 0, 1, 2, 0, 2, 3 ] );
-
-  //       const count = 1;
-  //       const offsets = new Float32Array(count * 3);
-  //       const uvOffset = new Float32Array(count * 2);
-  //       const uvScales = new Float32Array(count * 2);
-
-  //       // iterators
-  //       let uvOffsetIterator = 0;
-  //       let uvScalesIterator = 0;
-
-  //       const cX = 389;
-  //       const cY = 109;
-  //       const cWidth = 25;
-  //       const cHeight = 28;
-  //       const left = cX / 512 - 3;
-  //       const top = (512 - (cY + cHeight)) / 512 - 3;
-
-  //       for (let i = 0; i < count; i++) {
-
-  //         uvOffset[uvOffsetIterator++] = left;
-  //         uvOffset[uvOffsetIterator++] = top;
-
-  //         uvScales[uvScalesIterator++] = cWidth / 5.12;
-  //         uvScales[uvScalesIterator++] = cHeight / 5.12;
-  //       }
-
-  //       // add buffers
-  //       geometry.setAttribute(
-  //         'offset',
-  //         new THREE.InstancedBufferAttribute(offsets, 3, 1)
-  //       );
-  //       geometry.setAttribute(
-  //         'uvOffset',
-  //         new THREE.InstancedBufferAttribute(uvOffset, 2, 1)
-  //       );
-  //       geometry.setAttribute(
-  //         'uvScale',
-  //         new THREE.InstancedBufferAttribute(uvScales, 2, 1)
-  //       );
-
-
-  //       // material
-  //       const material = new THREE.ShaderMaterial({
-  //         uniforms: {
-  //           scale: { type: 'f', value: 0.5 }
-  //         },
-  //         vertexShader: document.getElementById('vert').innerText,
-  //         fragmentShader: document.getElementById('frag-donut').innerText,
-  //         side: THREE.DoubleSide,
-  //         blending: THREE.NormalBlending,
-  //         transparent: true
-  //       });
-
-
-  //       material.extensions.derivatives = true;
-  //       // mesh
-  //       const mesh = new THREE.Mesh(geometry, material);
-  //       mesh.name = 'DSO_' + object[1];
-
-  //       const RA = this.coordinatesConverterService.HMSToRadians(object[8], object[9], object[10]);
-  //       let Dec = this.coordinatesConverterService.DMSToRadians(object[12], object[13], object[14]);
-  //       Dec = object[11] === '-' ? -Dec : Dec;
-  //       const objPos = this.coordinatesConverterService.RADecToCartesian({dec: Dec, RA: RA}, this.skyRadius);
-  //       mesh.position.set(objPos.x, objPos.y, objPos.z);
-        
-  //       sky.add(mesh);
-  //     });
-  //   });
-  // }
-
-  addMoon(sky) {
+  addMoon(sky): void {
     const moonRADec = this.coordinatesConverterService.getMoonCoordinates(/*2018, 8, 21, 9, 54*/);
     const moonPos = this.coordinatesConverterService.RADecToCartesian({dec: moonRADec.dec, RA: moonRADec.RA}, this.skyRadius);
     const moonGeo = new THREE.SphereGeometry( 2, 32, 32 );
@@ -500,7 +362,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     sky.add(moonMesh);
   }
 
-  addMars(sky, sunEclipRectCoords) {
+  addMars(sky, sunEclipRectCoords): void {
     const mars = new Planet(MarsOrbitalElements);
     mars.geo = new THREE.SphereGeometry( 1, 32, 32 );
     mars.geo.name = 'mars';
@@ -511,7 +373,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     sky.add(mars.mesh);
   }
 
-  addJupiter(sky, sunEclipRectCoords) {
+  addJupiter(sky, sunEclipRectCoords): void {
     const jupiter = new Planet(JupiterOrbitalElements);
     jupiter.geo = new THREE.SphereGeometry( 1, 32, 32 );
     jupiter.geo.name = 'jupiter';
@@ -522,7 +384,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     sky.add(jupiter.mesh);
   }
 
-  addSaturn(sky, sunEclipRectCoords) {
+  addSaturn(sky, sunEclipRectCoords): void {
     const saturn = new Planet(SaturnOrbitalElements);
     saturn.geo = new THREE.SphereGeometry( 1, 32, 32 );
     saturn.geo.name = 'saturn';
@@ -533,7 +395,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     sky.add(saturn.mesh);
   }
 
-  addUranus(sky, sunEclipRectCoords) {
+  addUranus(sky, sunEclipRectCoords): void {
     const uranus = new Planet(UranusOrbitalElements);
     uranus.geo = new THREE.SphereGeometry( 1, 32, 32 );
     uranus.geo.name = 'uranus';
@@ -544,7 +406,7 @@ export class PlanetariumComponent implements AfterViewChecked {
     sky.add(uranus.mesh);
   }
 
-  ngAfterViewChecked() {
+  ngAfterViewChecked(): void {
     if (this.initialViewCheck) {
       return;
     }
@@ -552,7 +414,7 @@ export class PlanetariumComponent implements AfterViewChecked {
 
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( window.innerWidth - 450, window.innerHeight - 250 );
     document.getElementById('planetarium').appendChild( renderer.domElement );
 
     this.addLight(scene);
@@ -609,14 +471,14 @@ export class PlanetariumComponent implements AfterViewChecked {
     this.addUranus(sky, sunEclipRectCoords);*/
     this.drawDSO(sky);
 
-    const animate = function () {
+    const animate = () => {
       requestAnimationFrame( animate );
       render();
     };
 
-    function render() {
+    const render = () => {
       renderer.render( scene, camera );
-    }
+    };
 
     animate();
     render();

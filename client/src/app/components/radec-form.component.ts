@@ -6,15 +6,18 @@ import { PointingService } from '../services/pointing.service';
   selector: 'radec-form-component',
   template: `
     <h3>Ra/Dec</h3>
-    <form>
-      <label for="ra-field">RA</label>
-      <input type="number" name="ra" id="ra-field" [(ngModel)]="ra"/>
-      <label for="dec-field">Dec</label>
-      <input type="number" name="dec" [(ngModel)]="dec"/>
-      <button type="submit" (click)="submitRaDec()">Submit</button>
-    </form>
+    <mat-form-field>
+      <mat-label>RA</mat-label>
+      <input matInput type="number" name="ra" id="ra-field" [(ngModel)]="ra"/>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Dec</mat-label>
+      <input matInput type="number" name="dec" [(ngModel)]="dec"/>
+    </mat-form-field>
+    <button mat-raised-button type="submit" (click)="submitRaDec()">Submit</button>
   `,
-  providers: [ PointingService ]
+  providers: [ PointingService ],
+  styleUrls: ['./radec-form.component.css']
 })
 export class RaDecFormComponent implements OnInit {
   public ra: number;

@@ -1,17 +1,39 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <span class="material-icons">nights_stay</span>
+    <span>Estelle</span>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #sidenav mode="side" opened class="sidenav">
+    <mat-nav-list>
+      <mat-list-item routerLink="/pointing">
+        <span class="material-icons">moving</span>
+        <a matLine>Pointing</a>
+      </mat-list-item>
+      <mat-list-item>
+        <span class="material-icons">my_location</span>
+        <a matLine>Guiding</a>
+      </mat-list-item>
+      <mat-list-item routerLink="/imaging">
+        <span class="material-icons">photo_camera</span>
+        <a matLine>Imaging</a>
+      </mat-list-item>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+<!--
 <ul class="nav nav-tabs" role="tablist">
-  <li class="active" role="presentation">
-    <a href="#pointing" aria-controls="pointing" role="tab" data-toggle="tab">Pointing</a>
-  </li>
-  <li role="presentation">
-    <a href="#guiding" aria-controls="guiding" role="tab" data-toggle="tab">Guiding</a>
-  </li>
-  <li role="presentation">
-    <a href="#imaging" aria-controls="imaging" role="tab" data-toggle="tab">Imaging</a>
-  </li>
+  
 </ul>
 <div class="tab-content">
   <div class="tab-pane active" id="pointing" role="tabpanel">
-    <pointing-component></pointing-component>
+    
     
   </div>
   <div class="tab-pane" id="guiding" role='tabpanel'>
@@ -21,3 +43,4 @@
     <imaging-component></imaging-component>
   </div>
 </div>
+-->
